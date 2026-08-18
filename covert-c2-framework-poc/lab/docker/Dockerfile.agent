@@ -1,0 +1,20 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+
+COPY src/ src/
+
+RUN cd src/modules/agent_handler && make clean && make
+
+CMD ["python3", "src/core/c2_agent.py", "--server-url", "http://172.28.0.10:8080", "--secret-key", "changeme_secret_key_32bytes!!"]
